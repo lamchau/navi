@@ -24,9 +24,12 @@ function _navi_smart_replace
     if test -n "$query"
         set --local best_match (navi --print --query "$query" --best-match)
         if test -n "$best_match"
-            commandline --current-process $best_match
+            # --replace without --current-process: --current-process treats newlines as process
+            # boundaries and flattens multi-line snippets into a single line
+            commandline --replace -- "$best_match"
+            commandline --function end-of-line
             if test "$force_repaint" = true
-                commandline --function repaint
+                commandline --function repaint-mode
             end
             return
         end
@@ -34,9 +37,11 @@ function _navi_smart_replace
 
     set --local candidate (navi --print --query "$query")
     if test -n "$candidate"
-        commandline --current-process $candidate
+        commandline --replace -- "$candidate"
+        commandline --function end-of-line
         if test "$force_repaint" = true
-            commandline --function repaint
+            # repaint-mode redraws prompt + buffer, fixing ghost characters with multi-line prompts
+            commandline --function repaint-mode
         end
     end
 end
